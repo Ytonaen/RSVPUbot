@@ -1,10 +1,17 @@
+import os  # Импортируем os для работы с переменными окружения
 import telebot
 from telebot import types
 import json  # To store and retrieve data from a file
 
-# Replace 'YOUR_BOT_TOKEN' with your actual token
-bot = telebot.TeleBot('7447925251:AAH0-CH29vsj20zvTi2puuEzvwVeX7yZoIg')
+# Получаем токен из переменной окружения
+bot_token = os.environ.get("TOKEN")
 
+# Проверяем, установлен ли токен
+if not bot_token:
+    raise ValueError("Токен бота не установлен в переменной окружения 'TOKEN'")
+
+# Создаем экземпляр бота с токеном
+bot = telebot.TeleBot(bot_token)
 # Define the data file path
 data_file = "user_data.json"
 
