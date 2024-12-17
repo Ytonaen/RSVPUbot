@@ -11,10 +11,13 @@ bot_token = os.environ.get("TOKEN")
 if not bot_token:
     raise ValueError("Токен бота не установлен в переменной окружения 'TOKEN'")
 
-# Define the data file path
+# Инициализация бота
+bot = telebot.TeleBot(bot_token)
+
+# Определяем путь к файлу данных
 data_file = "user_data.json"
 
-#Подгружаем фаил пользователя
+# Подгружаем файл пользователя
 try:
     with open(data_file, "r") as f:
         user_data = json.load(f)
