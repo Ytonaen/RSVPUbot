@@ -65,115 +65,6 @@ group_buttons = {
     'group5': 'T'
 }
 
-def send_end_message(message, counters):
-    chat_id = message.chat.id
-    user_counters = get_user_counter(chat_id)
-    counter = user_counters["counter"]  # Смотрим текущий счетчик пользователя
-
-    if counter >= 10:  # Чекаем послкедний ли вопрос
-        max_counter = max(counters.values())
-        max_counters = [key for key, value in counters.items() if value == max_counter]
-
-        if len(max_counters) > 1:
-            # Если есть несколько максимальных значений, отправляем на дополнительный вопрос
-            send_image_pair(message)
-        else:
-            key = max_counters[0]
-            if key == 'Q':
-                end_message = "Ситуация 1: ..."
-                info_message = "Дополнительная информация #1"
-            elif key == 'W':
-                end_message = "Ситуация 2: ..."
-                info_message = "Дополнительная информация #2"
-            elif key == 'E':
-                end_message = "Ситуация 3: ..."
-                info_message = "Дополнительная информация #3"
-            elif key == 'R':
-                end_message = "Ситуация 4: ..."
-                info_message = "Дополнительная информация #4"
-            elif key == 'T':
-                end_message = "Ситуация 5: ..."
-                info_message = "Дополнительная информация #5"
-
-            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-            item1 = types.KeyboardButton('Рестарт')
-            item2 = types.KeyboardButton(info_message)
-            markup.add(item1, item2)
-
-            bot.send_message(chat_id, end_message, reply_markup=markup)
-            bot.send_message(chat_id, "Ваши счетчики: Q - {}, W - {}, E - {}, R - {}, T - {}".format(counters["Q"], counters["W"], counters["E"], counters["R"], counters["T"]))
-def send_image_pair(message):
-    chat_id = message.chat.id
-    user_counters = get_user_counter(chat_id)
-    used_images = user_counters["used_images"]
-    group_usage = user_counters["group_usage"]
-
-    # Выбераем группы, которые еще не достигли лимита использования (4 раза)
-    available_groups = [group for group, usage in group_usage.items() if usage < 4]
-
-    # Если доступно только две группы, выбираем их
-    if len(available_groups) >= 2:
-        groups = random.sample(available_groups, 2)
-    elif len(available_groups) == 1:
-        groups = available_groups
-    else:
-        # Если доступных групп нет, то выводим сообщение и выходим из функции
-        print("Нет доступных групп для отправки изображений.")
-        user_counters["used_images"] = []  # Сброс использованных изображений
-        user_counters["group_usage"] = {group: 0 for group in image_groups.keys()}  # Сброс использования групп
-        update_user_counter(chat_id, "group_usage", user_counters["group_usage"])
-        update_user_counter(chat_id, "used_images", [])
-        return
-
-    # Если доступны только две группы, используем их
-    if len(groups) < 2:
-        # Если осталась только одна группа, используем ее
-        groups = available_groups
-
-    # Выбераем случайную картинку из каждой группы, исключая использованные изображения
-    image1 = None
-    image2 = None
-
-    for group in groups:
-        # Выбираем случайную картинку из группы, которая еще не использовалась
-        while True:
-            random_image = random.choice(image_groups[group])
-            if random_image not in used_images:
-                if image1 is None:
-                    image1 = (group, random_image)
-                elif image2 is None and group != image1[0]:
-                    image2 = (group, random_image)
-                break
-
-    # Если не удалось выбрать две разные картинки, дублируем первую
-    if image2 is None:
-        image2 = image1
-
-    # Добавляем использованные изображения в список
-    used_images.extend([image1[1], image2[1]])
-    user_counters["used_images"] = used_images
-    update_user_counter(chat_id, "used_images", used_images)
-
-    # Обновляем использование групп
-    group_usage[image1[0]] += 1
-    group_usage[image2[0]] += 1
-    user_counters["group_usage"] = group_usage
-    update_user_counter(chat_id, "group_usage", group_usage)
-
-    # Костыль для красивой отправки по бкоам друг от друга
-    media = [
-        types.InputMediaPhoto(open(image1[1], 'rb')),
-        types.InputMediaPhoto(open(image2[1], 'rb'))
-    ]
-    bot.send_media_group(message.chat.id, media)
-
-    # Создаем кнопки для каждой группы
-    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    item1 = types.KeyboardButton(group_buttons[image1[0]])
-    item2 = types.KeyboardButton(group_buttons[image2[0]])
-    markup.add(item1, item2)
-
-    bot.send_message(message.chat.id, "Выберите картинку которая вам больше нравится:", reply_markup=markup)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -194,8 +85,6 @@ def start(message):
 
     bot.send_message(chat_id, "Начнем игру..")
     send_image_pair(message)
-
-
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -260,5 +149,122 @@ def handle_message(message):
         return
 
     send_image_pair(message)
+
+def send_end_message(message, counters):
+    chat_id = message.chat.id
+    user_counters = get_user_counter(chat_id)
+    counter = user_counters["counter"]  # Смотрим текущий счетчик пользователя
+
+    if counter >= 10:  # Чекаем послкедний ли вопрос
+        max_counter = max(counters.values())
+        max_counters = [key for key, value in counters.items() if value == max_counter]
+
+        if len(max_counters) > 1:
+            # Если есть несколько максимальных значений, отправляем на дополнительный вопрос
+            send_image_pair(message)
+        else:
+            key = max_counters[0]
+            if key == 'Q':
+                end_message = "Ситуация 1: ..."
+                info_message = "Дополнительная информация #1"
+            elif key == 'W':
+                end_message = "Ситуация 2: ..."
+                info_message = "Дополнительная информация #2"
+            elif key == 'E':
+                end_message = "Ситуация 3: ..."
+                info_message = "Дополнительная информация #3"
+            elif key == 'R':
+                end_message = "Ситуация 4: ..."
+                info_message = "Дополнительная информация #4"
+            elif key == 'T':
+                end_message = "Ситуация 5: ..."
+                info_message = "Дополнительная информация #5"
+
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+            item1 = types.KeyboardButton('Рестарт')
+            item2 = types.KeyboardButton(info_message)
+            markup.add(item1, item2)
+
+            bot.send_message(chat_id, end_message, reply_markup=markup)
+            bot.send_message(chat_id, "Ваши счетчики: Q - {}, W - {}, E - {}, R - {}, T - {}".format(counters["Q"], counters["W"], counters["E"], counters["R"], counters["T"]))
+
+def send_image_pair(message):
+    chat_id = message.chat.id
+    user_counters = get_user_counter(chat_id)
+    used_images = user_counters["used_images"]
+    group_usage = user_counters["group_usage"]
+
+    # Выбераем группы, которые еще не достигли лимита использования (4 раза)
+    available_groups = [group for group, usage in group_usage.items() if usage < 4]
+
+    # Если доступно только две группы, выбираем их
+    if len(available_groups) >= 2:
+        groups = random.sample(available_groups, 2)
+    elif len(available_groups) == 1:
+        groups = available_groups
+    else:
+        # Если доступных групп нет, то выводим сообщение и выходим из функции
+        print("Нет доступных групп для отправки изображений.")
+        user_counters["used_images"] = []  # Сброс использованных изображений
+        user_counters["group_usage"] = {group: 0 for group in image_groups.keys()}  # Сброс использования групп
+        update_user_counter(chat_id, "group_usage", user_counters["group_usage"])
+        update_user_counter(chat_id, "used_images", [])
+        send_image_pair(message)
+        return
+
+    # Если доступны только две группы, используем их
+    if len(groups) < 2:
+        # Если осталась только одна группа, используем ее
+        groups = available_groups
+
+    # Выбераем случайную картинку из каждой группы, исключая использованные изображения
+    image1 = None
+    image2 = None
+
+    for group in groups:
+        # Выбираем случайную картинку из группы, которая еще не использовалась
+        while True:
+            random_image = random.choice(image_groups[group])
+            if random_image not in used_images:
+                if image1 is None:
+                    image1 = (group, random_image)
+                elif image2 is None and group != image1[0]:
+                    image2 = (group, random_image)
+                break
+
+    # Если не удалось выбрать две разные картинки, дублируем первую
+    if image2 is None:
+        image2 = image1
+
+    # Добавляем использованные изображения в список
+    used_images.extend([image1[1], image2[1]])
+    user_counters["used_images"] = used_images
+    update_user_counter(chat_id, "used_images", used_images)
+
+    # Обновляем использование групп
+    group_usage[image1[0]] += 1
+    group_usage[image2[0]] += 1
+    user_counters["group_usage"] = group_usage
+    update_user_counter(chat_id, "group_usage", group_usage)
+
+    # Костыль для красивой отправки по бкоам друг от друга
+    media = [
+        types.InputMediaPhoto(open(image1[1], 'rb')),
+        types.InputMediaPhoto(open(image2[1], 'rb'))
+    ]
+    bot.send_media_group(message.chat.id, media)
+
+    # Создаем кнопки для каждой группы
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+    item1 = types.KeyboardButton(group_buttons[image1[0]])
+    item2 = types.KeyboardButton(group_buttons[image2[0]])
+    markup.add(item1, item2)
+
+    bot.send_message(message.chat.id, "Выберите картинку которая вам больше нравится:", reply_markup=markup)
+
+
+
+
+
 
 bot.polling()
