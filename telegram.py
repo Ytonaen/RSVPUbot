@@ -65,6 +65,43 @@ group_buttons = {
     'group5': 'T'
 }
 
+def send_end_message(message, counters):
+    chat_id = message.chat.id
+    user_counters = get_user_counter(chat_id)
+    counter = user_counters["counter"]  # Смотрим текущий счетчик пользователя
+
+    if counter >= 10:  # Чекаем послкедний ли вопрос
+        max_counter = max(counters.values())
+        max_counters = [key for key, value in counters.items() if value == max_counter]
+
+        if len(max_counters) > 1:
+            # Если есть несколько максимальных значений, отправляем на дополнительный вопрос
+            send_image_pair(message)
+        else:
+            key = max_counters[0]
+            if key == 'Q':
+                end_message = "Ситуация 1: ..."
+                info_message = "Дополнительная информация #1"
+            elif key == 'W':
+                end_message = "Ситуация 2: ..."
+                info_message = "Дополнительная информация #2"
+            elif key == 'E':
+                end_message = "Ситуация 3: ..."
+                info_message = "Дополнительная информация #3"
+            elif key == 'R':
+                end_message = "Ситуация 4: ..."
+                info_message = "Дополнительная информация #4"
+            elif key == 'T':
+                end_message = "Ситуация 5: ..."
+                info_message = "Дополнительная информация #5"
+
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+            item1 = types.KeyboardButton('Рестарт')
+            item2 = types.KeyboardButton(info_message)
+            markup.add(item1, item2)
+
+            bot.send_message(chat_id, end_message, reply_markup=markup)
+            bot.send_message(chat_id, "Ваши счетчики: Q - {}, W - {}, E - {}, R - {}, T - {}".format(counters["Q"], counters["W"], counters["E"], counters["R"], counters["T"]))
 def send_image_pair(message):
     chat_id = message.chat.id
     user_counters = get_user_counter(chat_id)
@@ -158,43 +195,7 @@ def start(message):
     bot.send_message(chat_id, "Начнем игру..")
     send_image_pair(message)
 
-def send_end_message(message, counters):
-    chat_id = message.chat.id
-    user_counters = get_user_counter(chat_id)
-    counter = user_counters["counter"]  # Смотрим текущий счетчик пользователя
 
-    if counter >= 10:  # Чекаем послкедний ли вопрос
-        max_counter = max(counters.values())
-        max_counters = [key for key, value in counters.items() if value == max_counter]
-
-        if len(max_counters) > 1:
-            # Если есть несколько максимальных значений, отправляем на дополнительный вопрос
-            send_image_pair(message)
-        else:
-            key = max_counters[0]
-            if key == 'Q':
-                end_message = "Ситуация 1: ..."
-                info_message = "Дополнительная информация #1"
-            elif key == 'W':
-                end_message = "Ситуация 2: ..."
-                info_message = "Дополнительная информация #2"
-            elif key == 'E':
-                end_message = "Ситуация 3: ..."
-                info_message = "Дополнительная информация #3"
-            elif key == 'R':
-                end_message = "Ситуация 4: ..."
-                info_message = "Дополнительная информация #4"
-            elif key == 'T':
-                end_message = "Ситуация 5: ..."
-                info_message = "Дополнительная информация #5"
-
-            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-            item1 = types.KeyboardButton('Рестарт')
-            item2 = types.KeyboardButton(info_message)
-            markup.add(item1, item2)
-
-            bot.send_message(chat_id, end_message, reply_markup=markup)
-            bot.send_message(chat_id, "Ваши счетчики: Q - {}, W - {}, E - {}, R - {}, T - {}".format(counters["Q"], counters["W"], counters["E"], counters["R"], counters["T"]))
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
