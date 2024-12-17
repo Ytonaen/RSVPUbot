@@ -81,7 +81,11 @@ def send_image_pair(message):
         groups = available_groups
     else:
         # Если доступных групп нет, то выводим сообщение и выходим из функции
-        bot.send_message(chat_id, "Нет доступных групп для отправки изображений.")
+        print("Нет доступных групп для отправки изображений.")
+        user_counters["used_images"] = []  # Сброс использованных изображений
+        user_counters["group_usage"] = {group: 0 for group in image_groups.keys()}  # Сброс использования групп
+        update_user_counter(chat_id, "group_usage", user_counters["group_usage"])
+        update_user_counter(chat_id, "used_images", [])
         return
 
     # Если доступны только две группы, используем их
