@@ -50,13 +50,12 @@ def send_text_file(message, file_path):
 
 # Определяем группы картинок
 image_groups = {
-    'group1': ['image.jpg', 'image1.jpg', 'image2.jpg', 'image3.jpg'],
-    'group2': ['image4.jpg', 'image5.jpg', 'image6.jpg', 'image7.jpg'],
-    'group3': ['image8.jpg', 'image9.jpg', 'image10.jpg', 'image11.jpg'],
-    'group4': ['image12.jpg', 'image13.jpg', 'image14.jpg', 'image15.jpg'],
-    'group5': ['image16.jpg', 'image17.jpg', 'image18.jpg', 'image20.jpg']
+    'group1': ['images/image.jpg', 'images/image1.jpg', 'images/image2.jpg', 'images/image3.jpg'],
+    'group2': ['images/image4.jpg', 'images/image5.jpg', 'images/image6.jpg', 'images/image7.jpg'],
+    'group3': ['images/image8.jpg', 'images/image9.jpg', 'images/image10.jpg', 'images/image11.jpg'],
+    'group4': ['images/image12.jpg', 'images/image13.jpg', 'images/image14.jpg', 'images/image15.jpg'],
+    'group5': ['images/image16.jpg', 'images/image17.jpg', 'images/image18.jpg', 'images/image20.jpg']
 }
-
 # Определяем кнопки для каждой группы
 group_buttons = {
     'group1': 'Q',
